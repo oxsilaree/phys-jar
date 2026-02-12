@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Physics Jar</title>
+  <style>
+  body {
+  margin: 10;
+  font-family: Arial, sans-serif;
+  text-align: center;   /* centers text like titles */
+    }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 30px;
+
+    max-width: 600px;
+    margin: 40px auto;   /* 👈 This centers it horizontally */
+    }
+  
+  .button-card {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    }
+
+
+  .button-card button {
+    width: 100%;   /* makes the button fill the grid column */
+    height: 50px;  /* optional fixed height */
+    font-size: 16px;
+    }
+  
+  .counter {
+    font-size: 16px;
+    margin-top: 5px;
+    font-weight: bold;
+  }
+    </style>
+</head>
+<body>
+
+<h1>Shared Button Counters</h1>
+<div id="buttons"></div>
+<h2>Total: $<span id="total">0</span></h2>
+
+
+
+<script type="module">
+  // 🔥 Paste your Firebase config here
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+    const firebaseConfig = {
+    apiKey: "AIzaSyCOC5PBb82xlpsCGvNNcXZztpTdlzCJNco",
+    authDomain: "phys-jar.firebaseapp.com",
+    projectId: "phys-jar",
+    storageBucket: "phys-jar.firebasestorage.app",
+    messagingSenderId: "425367999105",
+    appId: "1:425367999105:web:e5d75d92ef7fb21498f380",
+    measurementId: "G-7XKSBQNRML"
+    };
+
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot } 
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const buttonCount = 12;
+  const countersRef = doc(db, "counters", "main");
+
+  async function initCounters() {
+    const snap = await getDoc(countersRef);
+    if (!snap.exists()) {
+      await setDoc(countersRef, {
+        counts: Array(buttonCount).fill(0)
+      });
+    }
+  }
+
+  function createButtons(counts) {
+    const names = [
+    "Adam",
+    "Aubry",
+    "Elia",
+    "Eric",
+    "Ian",
+    "Jarett",
+    "Matthew",
+    "Neil",
+    "Rae",
+    "Sary",
+    "Shane",
+    "Trigg",
+    ];
+    const container = document.getElementById("buttons");
+    container.innerHTML = "";
+    let total = 0;
+
+    counts.forEach((count, i) => {
+      total += count/4;
+
+      const button = document.createElement("button");
+      button.innerHTML = `${names[i]}: <span class="counter">${count}</span>`;
+      button.onclick = async () => {
+        counts[i]++;
+        await updateDoc(countersRef, { counts });
+      };
+
+      container.appendChild(button);
+    });
+
+    document.getElementById("total").textContent = total.toFixed(2);;
+  }
+
+  onSnapshot(countersRef, (doc) => {
+    if (doc.exists()) {
+      createButtons(doc.data().counts);
+    }
+  });
+
+  initCounters();
+</script>
+
+</body>
+</html>
